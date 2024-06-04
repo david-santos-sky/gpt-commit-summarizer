@@ -1,10 +1,15 @@
 import type { gitDiffMetadata } from "./DiffMetadata";
 import { octokit } from "./octokit";
+// import {
+//   MAX_OPEN_AI_QUERY_LENGTH,
+//   MODEL_NAME,
+//   openai,
+// } from "./openAi";
 import {
   MAX_OPEN_AI_QUERY_LENGTH,
   MODEL_NAME,
   openai,
-} from "./openAi";
+} from "./azureOpenAi";
 import { SHARED_PROMPT } from "./sharedPrompt";
 import { summarizePr } from "./summarizePr";
 
@@ -92,13 +97,20 @@ async function getOpenAICompletion(
       throw new Error("OpenAI query too big");
     }
 
-    const response = await openai.chat.completions.create({
-      model: MODEL_NAME,
-      messages: [
+    // const response = await openai.chat.completions.create({
+    //   model: MODEL_NAME,
+    //   messages: [
+    //       { role: 'system', content: OPEN_AI_PRIMING },
+    //       { role: 'user', content: openAIPrompt }
+    //   ],
+    // });
+    const response = await openai.getChatCompletions(
+      MODEL_NAME,
+      [
           { role: 'system', content: OPEN_AI_PRIMING },
           { role: 'user', content: openAIPrompt }
-      ],
-    });
+      ]
+    );
 
     if (
       response.choices !== undefined &&
@@ -106,7 +118,8 @@ async function getOpenAICompletion(
     ) {
       completion = postprocessSummary(
         diffResponse.data.files.map((file: any) => file.filename),
-        response.choices[0].message.content ?? "Error: couldn't generate summary",
+        // response.choices[0].message.content ?? "Error: couldn't generate summary",
+          (response.choices[0].message && response.choices[0].message.content) ?? "Error: couldn't generate summary",
         diffMetadata
       );
     }

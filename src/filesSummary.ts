@@ -1,11 +1,16 @@
 import type { PayloadRepository } from "@actions/github/lib/interfaces";
 
 import { octokit } from "./octokit";
+// import {
+//   MAX_OPEN_AI_QUERY_LENGTH,
+//   MODEL_NAME,
+//   openai,
+// } from "./openAi";
 import {
   MAX_OPEN_AI_QUERY_LENGTH,
   MODEL_NAME,
   openai,
-} from "./openAi";
+} from "./azureOpenAi";
 import { SHARED_PROMPT } from "./sharedPrompt";
 
 const linkRegex =
@@ -41,19 +46,27 @@ async function getOpenAISummaryForFile(
       throw new Error("OpenAI query too big");
     }
 
-    const response = await openai.chat.completions.create({
-      model: MODEL_NAME,
-      messages: [
+    // const response = await openai.chat.completions.create({
+    //   model: MODEL_NAME,
+    //   messages: [
+    //     { role: 'system', content: SHARED_PROMPT },
+    //     { role: 'user', content: openAIPrompt }
+    //   ],
+    // });
+    const response = await openai.getChatCompletions(
+      MODEL_NAME,
+      [
         { role: 'system', content: SHARED_PROMPT },
         { role: 'user', content: openAIPrompt }
-      ],
-    });
+      ]
+    );
     if (
       response.choices !== undefined &&
       response.choices.length > 0
     ) {
       return (
-        response.choices[0].message.content ?? "Error: couldn't generate summary"
+        // response.choices[0].message.content ?? "Error: couldn't generate summary"
+          (response.choices[0].message && response.choices[0].message.content) ?? "Error: couldn't generate summary"
       );
     }
   } catch (error) {
