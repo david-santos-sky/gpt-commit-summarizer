@@ -28,7 +28,7 @@ export function preprocessCommitMessage(commitMessage: string): string {
 const OPEN_AI_PROMPT = `The following is a git diff of a single file.
 Please summarize it in a comment, describing the changes made in the diff in high level.
 Do it in the following way:
-Write \`SUMMARY:\` and then write a summary of the changes made in the diff, as a bullet point list.
+Write a summary of the changes made in the diff, as a bullet point list.
 Every bullet point should start with a \`*\`.
 `;
 
