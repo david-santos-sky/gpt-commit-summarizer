@@ -3,10 +3,8 @@ import type { PayloadRepository } from "@actions/github/lib/interfaces";
 import { octokit } from "./octokit";
 import {
   MAX_OPEN_AI_QUERY_LENGTH,
-  MAX_TOKENS,
   MODEL_NAME,
   openai,
-  TEMPERATURE,
 } from "./openAi";
 import { SHARED_PROMPT } from "./sharedPrompt";
 
@@ -22,8 +20,7 @@ export function preprocessCommitMessage(commitMessage: string): string {
   return commitMessage;
 }
 
-const OPEN_AI_PROMPT = `${SHARED_PROMPT}
-The following is a git diff of a single file.
+const OPEN_AI_PROMPT = `The following is a git diff of a single file.
 Please summarize it in a comment, describing the changes made in the diff in high level.
 Do it in the following way:
 Write \`SUMMARY:\` and then write a summary of the changes made in the diff, as a bullet point list.
@@ -38,24 +35,25 @@ async function getOpenAISummaryForFile(
 ): Promise<string> {
   try {
     const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n${patch}\n\`\`\`\n\nSUMMARY:\n`;
-    console.log(`OpenAI file summary prompt for ${filename}:\n${openAIPrompt}`);
+    console.log(`OpenAI file summary prompt for ${filename}:\n${SHARED_PROMPT}\n${openAIPrompt}`);
 
     if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
       throw new Error("OpenAI query too big");
     }
 
-    const response = await openai.completions.create({
+    const response = await openai.chat.completions.create({
       model: MODEL_NAME,
-      prompt: openAIPrompt,
-      max_tokens: MAX_TOKENS,
-      temperature: TEMPERATURE,
+      messages: [
+        { role: 'system', content: SHARED_PROMPT },
+        { role: 'user', content: openAIPrompt }
+      ],
     });
     if (
       response.choices !== undefined &&
       response.choices.length > 0
     ) {
       return (
-        response.choices[0].text ?? "Error: couldn't generate summary"
+        response.choices[0].message.content ?? "Error: couldn't generate summary"
       );
     }
   } catch (error) {
