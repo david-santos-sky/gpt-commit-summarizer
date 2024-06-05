@@ -33,7 +33,7 @@ jobs:
     permissions: write-all  # Some repositories need this line
 
     steps:
-      - uses: david-santos-sky/gpt-commit-summarizer@master
+      - uses: david-santos-sky/gpt-commit-summarizer@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
